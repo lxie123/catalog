@@ -74,42 +74,13 @@ def render_mcs(args):
         file.write(output)
 
 
-def get_install_cmd(release: str, repo: str, prefix: str | None, charts: list) -> str:
+def get_servicetemplate_install_cmd(repo: str, charts: list) -> str:
     cmd_lines = []
-    cmd_lines.append(f'helm upgrade --install {release} oci://ghcr.io/k0rdent/catalog/charts/kgst -n kcm-system')
-    cmd_lines.append(f'    --set "helm.repository.url={repo}"')
-    if repo.startswith('oci'):
-        cmd_lines.append(f'    --set "helm.repository.type=oci"')
-    if prefix:
-        cmd_lines.append(f'    --set "prefix={prefix}"')
-
-    for i, chart in enumerate(charts):
-        cmd_lines.append(f'    --set "helm.charts[{i}].name={chart['name']}"')
-        cmd_lines.append(f'    --set "helm.charts[{i}].version={chart['version']}"')
-
-    cmd = " \\\n".join(cmd_lines)
+    for chart in charts:
+        cmd_lines.append(f'helm install {chart['name']} {repo}/{chart['name']}-service-template \\')
+        cmd_lines.append(f'  --version {chart['version']} -n kcm-system')
+    cmd = "\n".join(cmd_lines)
     return cmd
-
-
-def show_install_cmd(args: str):
-    app = args.app
-    helm_config_path = f"apps/{app}/helm-values-kgst.yaml"
-    if os.path.exists(helm_config_path):
-        show_install_from_helm_config(app, helm_config_path)
-        return
-    kgst_install_deps(args)
-
-
-def show_install_from_helm_config(app: str, helm_config_path: str):
-    helm_config = None
-    with open(helm_config_path, "r", encoding='utf-8') as file:
-        helm_config = yaml.safe_load(file)
-
-    repo = helm_config['helm']['repository']['url']
-    prefix = helm_config.get('prefix')
-    charts = helm_config['helm']['charts']
-    cmd = get_install_cmd(app, repo, prefix, charts)
-    print(cmd)
 
 
 def get_app_data(app: str) -> dict:
@@ -156,32 +127,53 @@ def chart_2_repos(chart: dict) -> dict:
     return repos
 
 
-def kgst_install_deps(args):
+def install_servicetemplates(args):
     app = args.app
     chart = get_chart_data(app)
     repos = chart_2_repos(chart)
     for repo in repos:
         charts = repos[repo]
-        release = charts[0]['name']
-        cmd = get_install_cmd(release, repo, None, charts)
+        cmd = get_servicetemplate_install_cmd(repo, charts)
         print(cmd)
+
+
+def print_test_vars(args):
+    app = args.app
+    app_data = get_app_data(app)
+    test_install_servicetemplates = str(app_data.get('test_install_servicetemplates', True)).lower()
+    print(f"INSTALL_SERVICETEMPLATES={test_install_servicetemplates}")
+    test_deploy_chart = str(app_data.get('test_deploy_chart', True)).lower()
+    print(f"DEPLOY_CHART={test_deploy_chart}")
+    test_deploy_multiclusterservice = str(app_data.get('test_deploy_multiclusterservice', True)).lower()
+    print(f"DEPLOY_MULTICLUSTERSERVICE={test_deploy_multiclusterservice}")
+
+
+def get_wait_for_pods(args):
+    app = args.app
+    app_data = get_app_data(app)
+    if 'test_wait_for_pods' in app_data:
+        print(f"{app_data['test_wait_for_pods']}")
 
 
 parser = argparse.ArgumentParser(description='Catalog dev tool.',
                                     formatter_class=argparse.ArgumentDefaultsHelpFormatter)  # To show default values in help.
 subparsers = parser.add_subparsers(dest="command", required=True)
 
-show = subparsers.add_parser("show-install-cmd", help="Show 'kgst' install command")
-show.add_argument("app")
-show.set_defaults(func=show_install_cmd)
-
-install = subparsers.add_parser("kgst-install-deps", help="Install example chart deps using 'kgst'")
-install.add_argument("app")
-install.set_defaults(func=kgst_install_deps)
-
 install = subparsers.add_parser("render-mcs", help="Render MultiClusterService using app example chart")
 install.add_argument("app")
 install.set_defaults(func=render_mcs)
+
+install = subparsers.add_parser("install-servicetemplates", help="Install app example service templates")
+install.add_argument("app")
+install.set_defaults(func=install_servicetemplates)
+
+install = subparsers.add_parser("print-test-vars", help="Print testing env vars values")
+install.add_argument("app")
+install.set_defaults(func=print_test_vars)
+
+install = subparsers.add_parser("get-wait-for-pods", help="Print WAIT_FOR_PODS value")
+install.add_argument("app")
+install.set_defaults(func=get_wait_for_pods)
 
 args = parser.parse_args()
 args.func(args)

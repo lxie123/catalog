@@ -6,6 +6,7 @@ SECONDS=0
 
 while (( SECONDS < TIMEOUT )); do
     echo "$TEST_MODE/$NAMESPACE"
+    KUBECONFIG="kcfg_$TEST_MODE" kubectl get pods -n "$NAMESPACE"
     pods_json=$(KUBECONFIG="kcfg_$TEST_MODE" kubectl get pods -n "$NAMESPACE" -o json 2>/dev/null || true)
 
     if [[ -z "$pods_json" ]]; then
@@ -18,7 +19,7 @@ while (( SECONDS < TIMEOUT )); do
 
     pod_count=$(jq '.items | length' <<< "$pods_json")
     if [[ "$pod_count" -eq 0 ]]; then
-        echo "No pods found in the namespace yet"
+        echo "⏳ No pods found in the namespace '$NAMESPACE' yet"
         sleep 3
         continue
     fi
@@ -36,9 +37,6 @@ while (( SECONDS < TIMEOUT )); do
         ready_containers=$(_jq 'if .status.containerStatuses != null then [.status.containerStatuses[] | select(.ready == true)] | length else 0 end')
         total_containers=$(_jq 'if .status.containerStatuses != null then .status.containerStatuses | length else 0 end')
 
-
-        echo "- $name => Status: $status, Ready: $ready_containers/$total_containers"
-
         if [[ "$status" == "Succeeded" ]]; then
             continue
         elif [[ "$status" == "Running" ]]; then
@@ -47,6 +45,14 @@ while (( SECONDS < TIMEOUT )); do
             fi
         else
             all_ready=false
+        fi
+    done
+
+    for wait_for_pod in ${WAIT_FOR_PODS:-}; do
+        if ! jq -r '.items[].metadata.name' <<< "$pods_json" | grep -q $wait_for_pod; then
+           all_ready=false
+           echo "Expected pod '$wait_for_pod' not found!"
+           break
         fi
     done
 

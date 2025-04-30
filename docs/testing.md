@@ -3,7 +3,7 @@
 ## Requirements
 - `helm` - The Kubernetes package manager (`brew install helm`)
 - `kind` - [Local Kubernetes cluster tool](https://kind.sigs.k8s.io/) (for local testing only)
-- Mothership Kubernetes cluster with [k0rdent 0.1.0 installed](https://docs.k0rdent.io/v0.1.0/admin-installation/#install-k0rdent).
+- Mothership Kubernetes cluster with [k0rdent 0.2.0 installed](https://docs.k0rdent.io/v0.2.0/admin/installation/install-k0rdent/).
     - You can install local `k0rdent` cluster using:
     ~~~bash
     ./scripts/deploy_k0rdent.sh
@@ -50,7 +50,7 @@ Then uninstall it and verify it was really removed. You can use this section ove
 for a different applications.
 ~~~bash
 # Install k0rdent service template
-./scripts/kgst_install.sh
+./scripts/install_servicetemplates.sh
 
 # Deploy service using multiclusterservice
 # Note: there is complete configurable values list in $APP/values-orig.yaml folder.
