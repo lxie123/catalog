@@ -17,6 +17,8 @@ description: |
 support_link: https://nirmata.com/nirmata-enterprise-for-kyverno/
 support_type: Enterprise
 install_code: |
+  - k0rdent Enterprise Required
+  - Nirmata Entitlement Required
     ~~~bash
     helm install nirmata-kyverno oci://registry.mirantis.com/k0rdent-enterprise/nirmata-kyverno-service-template \
       --version 3.3.13 -n kcm-system
