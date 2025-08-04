@@ -2,7 +2,7 @@ tags:
   - Monitoring
 title: Headlamp
 summary: "User-friendly Kubernetes UI focused on extensibility."
-logo: "./assets/headlamp.svg" # https://github.com/kubernetes-sigs/headlamp/blob/main/docs/images/icon.svg
+logo: "./assets/headlamp.png" # https://github.com/kubernetes-sigs/headlamp/blob/main/docs/images/icon.svg
 logo_big: "./assets/headlamp-big.svg" # https://headlamp.dev/img/logo.svg
 created: "2025-07-10T16:26:02Z"
 description: |
