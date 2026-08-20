@@ -9,6 +9,7 @@ import { ContributePage } from "./ContributePage";
 import { SolutionsPage } from "./SolutionsPage";
 import { InfraPage } from "./InfraPage";
 import { ConfiguratorPage } from "./ConfiguratorPage";
+import { PartnerCTA } from "./PartnerCTA";
 
 export default function App() {
   var initParams = useMemo(readUrlParams, []);
@@ -192,6 +193,13 @@ export default function App() {
     for(var i=0;i<RAW.length;i++){if(RAW[i].tested)testedCount++;if(getEff(RAW[i])==="mirantis-certified")certCount++;}
   }
 
+  var contributeUrl = versionBase(k0rdentVer||"")+"contribute/";
+  function goContribute() {
+    setSelected(null);
+    setView("contribute");
+    history.pushState(null,"",appendTheme(contributeUrl));
+  }
+
   if (loading || loadError) {
     return (
       <div style={{fontFamily:"'Inter',-apple-system,sans-serif",background:B.bg0,minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",flexDirection:"column",gap:16}}>
@@ -229,6 +237,7 @@ export default function App() {
           .k0-catalog-header { flex-direction: column !important; align-items: flex-start !important; gap: 8px !important; }
           .k0-catalog-layout { flex-direction: column !important; }
           .k0-sidebar { width: 100% !important; position: static !important; gap: 10px !important; }
+          .k0-partner-cta { padding: 16px !important; gap: 14px !important; }
         }
         @media (max-width: 400px) {
           .k0-nav-tabs button { padding: 0 5px !important; font-size: 10px !important; }
@@ -242,7 +251,10 @@ export default function App() {
 
       {view==="contribute"&&<ContributePage/>}
       {view==="solutions"&&<SolutionsPage initSolId={initParams.sol} initScat={initParams.scat} initShide={initParams.shide} k0rdentVer={k0rdentVer}/>}
-      {view==="infra"&&<InfraPage k0rdentVer={k0rdentVer} initInfraApp={initParams.infraApp} initDtab={initParams.dtab} initIgrp={initParams.igrp}/>}
+      {view==="infra"&&<>
+        <InfraPage k0rdentVer={k0rdentVer} initInfraApp={initParams.infraApp} initDtab={initParams.dtab} initIgrp={initParams.igrp}/>
+        <div style={{maxWidth:1140,margin:"0 auto",padding:"0 20px"}}><PartnerCTA href={contributeUrl} onContribute={goContribute}/></div>
+      </>}
       {view==="configurator"&&<ConfiguratorPage initUsecase={initParams.usecase} initCcloud={initParams.ccloud} initCscale={initParams.cscale} k0rdentVer={k0rdentVer}/>}
 
       {view==="catalog"&&(
@@ -332,6 +344,8 @@ export default function App() {
             </div>
           </div>
 
+          <PartnerCTA href={contributeUrl} onContribute={goContribute}/>
+
           <div style={{marginTop:28,paddingTop:18,borderTop:"1px solid "+B.border,display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:9}}>
             <div style={{display:"flex",alignItems:"center",gap:9}}>
               <img src={BASE+(dark?"k0rdent-logo.svg":"k0rdent-logo-dark.svg")} alt="k0rdent" style={{height:15}} />
@@ -340,7 +354,7 @@ export default function App() {
             <div style={{display:"flex",gap:14}}>
               <span style={{fontSize:9.5,color:B.textMut}}>Privacy Policy</span>
               <span style={{fontSize:9.5,color:B.textMut}}>Terms of Use</span>
-              <a href={versionBase(k0rdentVer||"")+"contribute/"} onClick={function(e:any){e.preventDefault();setView("contribute");history.pushState(null,"",appendTheme(versionBase(k0rdentVer||"")+"contribute/"));}} style={{fontSize:9.5,color:B.teal,cursor:"pointer",fontWeight:500,textDecoration:"none"}}>Contribute</a>
+              <a href={contributeUrl} onClick={function(e:any){e.preventDefault();goContribute();}} style={{fontSize:9.5,color:B.teal,cursor:"pointer",fontWeight:500,textDecoration:"none"}}>Contribute</a>
             </div>
           </div>
         </div>
